@@ -20,6 +20,7 @@
 #include "recovery/log_manager.h"
 #include "storage/disk/disk_manager.h"
 #include "storage/page/page.h"
+#include "common/logger.h"
 
 namespace bustub {
 
@@ -40,7 +41,9 @@ class BufferPoolManager {
   /** Grading function. Do not modify! */
   Page *FetchPage(page_id_t page_id, bufferpool_callback_fn callback = nullptr) {
     GradingCallback(callback, CallbackType::BEFORE, page_id);
+    // LOG_INFO("fetch started");
     auto *result = FetchPgImp(page_id);
+    // LOG_INFO("fetch ended");
     GradingCallback(callback, CallbackType::AFTER, page_id);
     return result;
   }
@@ -48,7 +51,10 @@ class BufferPoolManager {
   /** Grading function. Do not modify! */
   bool UnpinPage(page_id_t page_id, bool is_dirty, bufferpool_callback_fn callback = nullptr) {
     GradingCallback(callback, CallbackType::BEFORE, page_id);
+
+    // LOG_DEBUG("started unpin");
     auto result = UnpinPgImp(page_id, is_dirty);
+    // LOG_DEBUG("end unpin");
     GradingCallback(callback, CallbackType::AFTER, page_id);
     return result;
   }

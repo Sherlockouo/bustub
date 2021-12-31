@@ -47,6 +47,13 @@ class ClockReplacer : public Replacer {
 
  private:
   // TODO(student): implement me!
+  bool hasFrameId(frame_id_t frame_id);
+
+  /* 等待撤离的pages */
+  std::list<frame_id_t> wait_list_{};
+
+  /* waitlist 的 iterator*/
+  std::vector<std::list<frame_id_t>::iterator> page2iter_;
 };
 
 }  // namespace bustub

@@ -11,10 +11,12 @@
 //===----------------------------------------------------------------------===//
 
 #include "buffer/lru_replacer.h"
+#include "common/logger.h"
 
 namespace bustub {
 
-LRUReplacer::LRUReplacer(size_t num_pages) {}
+LRUReplacer::LRUReplacer(size_t num_pages):capacity(num_pages){
+}
 
 LRUReplacer::~LRUReplacer() = default;
 
@@ -49,15 +51,25 @@ void LRUReplacer::Pin(frame_id_t frame_id) {
 // 相当于put函数
 void LRUReplacer::Unpin(frame_id_t frame_id) {
     std::scoped_lock<std::mutex> lock(latch);
-
+    
+    // LOG_DEBUG("lru point 1");
     if(lru_map.count(frame_id)!=0){
         return;
     }
 
+    // LOG_DEBUG("lru point 2");
     // ruguo 链表尾部是否有空余节点 如果没有则移除尾部节点 直到有空位
     while(Size()>=capacity){
-        frame_id_t to_delete = lru_list.front();
+
+        // LOG_INFO("size is %zu, capacity is %zu", Size(), capacity);
+        
+        frame_id_t to_delete = lru_list.back();
+        
+        // LOG_INFO("frame_id_t %d size is %zu ",to_delete, lru_list.size());
         lru_list.pop_back();
+        // frame_id_t to_delete = lru_list.front();
+        // lru_list.pop_front();
+        // LOG_INFO("map size is %zu ", lru_map.size());
         lru_map.erase(to_delete);
     }
 
@@ -68,6 +80,6 @@ void LRUReplacer::Unpin(frame_id_t frame_id) {
     lru_map[frame_id] = lru_list.begin();
 }
 
-size_t LRUReplacer::Size() { return lru_list.size(); }
+size_t LRUReplacer::Size() { return lru_map.size(); }
 
 }  // namespace bustub

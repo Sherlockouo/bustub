@@ -144,5 +144,15 @@ class BufferPoolManagerInstance : public BufferPoolManager {
   std::list<frame_id_t> free_list_;
   /** This latch protects shared data structures. We recommend updating this comment to describe what it protects. */
   std::mutex latch_;
+
+  private:
+    // page_table 中寻找page
+    frame_id_t FindPage(page_id_t page_id);
+
+    // 在freelist 或者 lru中找个 空闲id
+    frame_id_t FindFreePage();
+
+    // 把page的content写道disk中
+    void FlushPage(page_id_t page_id);
 };
 }  // namespace bustub
