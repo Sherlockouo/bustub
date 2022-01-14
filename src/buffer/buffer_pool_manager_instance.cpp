@@ -152,10 +152,10 @@ Page *BufferPoolManagerInstance::FetchPgImp(page_id_t page_id) {
     return &pages_[frame_id];
   }
 
-  for ( auto x : page_table_){
-    std::cout<< x.first <<" "<< x.second<<std::endl;
-  }
-  std::puts("");
+  // for ( auto x : page_table_){
+  //   std::cout<< x.first <<" "<< x.second<<std::endl;
+  // }
+  // std::puts("");
 
   // LOG_INFO("point 1");
   // 1.2    If P does not exist, find a replacement page (R) from either the free list or the replacer.

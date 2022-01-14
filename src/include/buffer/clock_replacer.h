@@ -45,6 +45,8 @@ class ClockReplacer : public Replacer {
 
   size_t Size() override;
 
+  bool IsInReplacer(frame_id_t frame_id);
+
  private:
   // TODO(student): implement me!
   bool hasFrameId(frame_id_t frame_id);
