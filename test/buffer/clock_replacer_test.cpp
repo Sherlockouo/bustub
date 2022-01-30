@@ -16,12 +16,14 @@
 
 #include "buffer/clock_replacer.h"
 #include "gtest/gtest.h"
+#include "common/logger.h"
 
 namespace bustub {
 
 TEST(ClockReplacerTest, SampleTest) {
   ClockReplacer clock_replacer(7);
-
+  LOG_INFO("starting\n");
+  
   // Scenario: unpin six elements, i.e. add them to the replacer.
   clock_replacer.Unpin(1);
   clock_replacer.Unpin(2);

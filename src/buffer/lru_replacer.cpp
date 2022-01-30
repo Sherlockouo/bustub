@@ -83,9 +83,9 @@ void LRUReplacer::Unpin(frame_id_t frame_id) {
 }
 
 size_t LRUReplacer::Size() { 
-    latch_.lock();
+    // latch_.lock();
     return lru_map_.size(); 
-    latch_.unlock();
+    // latch_.unlock();
 }
 
 }  // namespace bustub
