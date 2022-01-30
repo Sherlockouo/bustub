@@ -15,12 +15,12 @@
 
 namespace bustub {
 
-ParallelBufferPoolManager::ParallelBufferPoolManager(size_t num_instances, size_t pool_size, DiskManager *disk_manager,
-                                                     LogManager *log_manager):bpmis_(num_instances),pool_size(pool_size) {
+ParallelBufferPoolManager::ParallelBufferPoolManager(size_t num_instances, size_t pool_size_, DiskManager *disk_manager,
+                                                     LogManager *log_manager):bpmis_(num_instances),pool_size_(pool_size_) {
   // Allocate and create individual BufferPoolManagerInstances
   // 创建num 个缓冲池管理实例
   for(uint32_t instance_index = 0; instance_index < num_instances; instance_index++){
-    bpmis_[instance_index] = new BufferPoolManagerInstance(pool_size,num_instances,instance_index,disk_manager,log_manager);
+    bpmis_[instance_index] = new BufferPoolManagerInstance(pool_size_,num_instances,instance_index,disk_manager,log_manager);
   }
 }
 
@@ -33,7 +33,7 @@ ParallelBufferPoolManager::~ParallelBufferPoolManager(){
 
 size_t ParallelBufferPoolManager::GetPoolSize() {
   // Get size of all BufferPoolManagerInstances
-  return pool_size*bpmis_.size();
+  return pool_size_*bpmis_.size();
 }
 
 BufferPoolManager *ParallelBufferPoolManager::GetBufferPoolManager(page_id_t page_id) {
@@ -65,16 +65,16 @@ Page *ParallelBufferPoolManager::NewPgImp(page_id_t *page_id) {
   // starting index and return nullptr
   // 2.   Bump the starting index (mod number of instances) to start search at a different BPMI each time this function
   // is called
-  uint32_t start_index = last_alloc_index;
+  uint32_t start_index = last_alloc_index_;
   do{
     auto page = bpmis_[start_index % bpmis_.size()]->NewPage(page_id);
     if(page != nullptr){
-      last_alloc_index = (last_alloc_index + 1)% bpmis_.size();
+      last_alloc_index_ = (last_alloc_index_ + 1)% bpmis_.size();
       return page;
     }
     start_index = (start_index + 1)%bpmis_.size();
-  }while(start_index != last_alloc_index);
-  last_alloc_index = (last_alloc_index + 1) % bpmis_.size();
+  }while(start_index != last_alloc_index_);
+  last_alloc_index_ = (last_alloc_index_ + 1) % bpmis_.size();
   return nullptr;
 }
 

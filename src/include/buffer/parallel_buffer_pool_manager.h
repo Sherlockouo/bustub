@@ -90,7 +90,7 @@ class ParallelBufferPoolManager : public BufferPoolManager {
 
   private:
     std::vector<BufferPoolManagerInstance*> bpmis_;
-    uint32_t last_alloc_index{0};
-    size_t pool_size;
+    uint32_t last_alloc_index_{0};
+    size_t pool_size_;
 };
 }  // namespace bustub

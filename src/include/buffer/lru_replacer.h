@@ -48,11 +48,11 @@ class LRUReplacer : public Replacer {
 
  private:
   // TODO(student): implement me!
-  std::mutex latch;
-  size_t capacity;
+  std::mutex latch_;
+  size_t capacity_;
   
-  std::list<frame_id_t> lru_list;
-  std::unordered_map<frame_id_t,std::list<frame_id_t>::iterator> lru_map;
+  std::list<frame_id_t> lru_list_;
+  std::unordered_map<frame_id_t,std::list<frame_id_t>::iterator> lru_map_;
 
 };
 

@@ -153,6 +153,6 @@ class BufferPoolManagerInstance : public BufferPoolManager {
     frame_id_t FindFreePage();
 
     // 把page的content写道disk中
-    void FlushPage(page_id_t page_id);
+    void FlushPg(page_id_t page_id);
 };
 }  // namespace bustub
