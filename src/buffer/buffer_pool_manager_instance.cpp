@@ -55,16 +55,14 @@ BufferPoolManagerInstance::~BufferPoolManagerInstance() {
 // 2. 写入磁盘 
 bool BufferPoolManagerInstance::FlushPgImp(page_id_t page_id) {
   // Make sure you call DiskManager::WritePage!
-  latch_.lock();
+  std::lock_guard<std::mutex> lock_guard(latch_);
   auto iter = page_table_.find(page_id);
   if(iter == page_table_.end() || page_id == INVALID_PAGE_ID){
-    latch_.unlock();
     return false;
   }
   FlushPg(page_id);
   
   pages_[page_table_[page_id]].is_dirty_ = false;
-  latch_.unlock();
   return true;
 }
 
@@ -78,12 +76,11 @@ void BufferPoolManagerInstance::FlushAllPgsImp() {
 // 分配一个新的page 简历page -> frame 映射
 Page *BufferPoolManagerInstance::NewPgImp(page_id_t *page_id) {
   // 0.   Make sure you call AllocatePage!
-  latch_.lock();
+ std::lock_guard<std::mutex> lock_guard(latch_);
  auto frame_id = FindFreePage();
   
   // 1.   If all the pages in the buffer pool are pinned, return nullptr.
   if(frame_id == -1){
-    latch_.unlock();
     return nullptr;
   }
     
@@ -96,7 +93,6 @@ Page *BufferPoolManagerInstance::NewPgImp(page_id_t *page_id) {
 
   *page_id = pages_[frame_id].GetPageId();
   memset(pages_[frame_id].GetData(),0,PAGE_SIZE);
-  latch_.unlock();
   return &pages_[frame_id];
 }
 
@@ -109,13 +105,12 @@ Page *BufferPoolManagerInstance::NewPgImp(page_id_t *page_id) {
 Page *BufferPoolManagerInstance::FetchPgImp(page_id_t page_id) {
   // 1.     Search the page table for the requested page (P).
   // 1.1    If P exists, pin it and return it immediately.
-  latch_.lock();
+  std::lock_guard<std::mutex> lock_guard(latch_);
   auto frame_id = FindPage(page_id);
   if(frame_id != -1){
     replacer_->Pin(frame_id);
     pages_[frame_id].pin_count_++;
     pages_[frame_id].is_dirty_ = true;
-    latch_.unlock();
     return &pages_[frame_id];
   }
 
@@ -132,7 +127,6 @@ Page *BufferPoolManagerInstance::FetchPgImp(page_id_t page_id) {
   frame_id = FindFreePage();
 
   if(frame_id == -1){
-    latch_.unlock();
     return nullptr;
   }
 
@@ -143,7 +137,6 @@ Page *BufferPoolManagerInstance::FetchPgImp(page_id_t page_id) {
   pages_[frame_id].is_dirty_ = false;
   disk_manager_->ReadPage(page_id,pages_[frame_id].GetData());
   
-  latch_.unlock();
   return &pages_[frame_id];
 }
 
@@ -152,7 +145,7 @@ bool BufferPoolManagerInstance::DeletePgImp(page_id_t page_id) {
   // 1.   Search the page table for the requested page (P).
   // 1.   If P does not exist, return true.
   // 2.   If P exists, but has a non-zero pin-count, return false. Someone is using the page.
-  latch_.lock();
+  std::lock_guard<std::mutex> lock_guard(latch_);
   DeallocatePage(page_id);
   auto frame_id = FindPage(page_id);
   if(frame_id != -1){
@@ -167,7 +160,6 @@ bool BufferPoolManagerInstance::DeletePgImp(page_id_t page_id) {
     free_list_.push_back(frame_id);
   }
   
-  latch_.unlock();
   return true;
 }
 
@@ -175,11 +167,10 @@ bool BufferPoolManagerInstance::DeletePgImp(page_id_t page_id) {
 // 该页又可以被使用
 // 将该页放回lru中
 bool BufferPoolManagerInstance::UnpinPgImp(page_id_t page_id, bool is_dirty) {
-  latch_.lock();
+  std::lock_guard<std::mutex> lock_guard(latch_);
   auto frame_id = FindPage(page_id);
   // 如果page中没有 返回false
   if (frame_id == -1 || pages_[frame_id].pin_count_==0){
-    latch_.unlock();
     return false;
   }
   // LOG_DEBUG("debug point 1");
@@ -191,7 +182,6 @@ bool BufferPoolManagerInstance::UnpinPgImp(page_id_t page_id, bool is_dirty) {
     FlushPg(page_id);
   }
   
-  latch_.unlock();
   return true; 
 }
 
@@ -234,7 +224,7 @@ frame_id_t BufferPoolManagerInstance::FindFreePage(){
 
 frame_id_t BufferPoolManagerInstance::FindPage(frame_id_t page_id){
   auto iter = page_table_.find(page_id);
-  if(iter != page_table_.end()){
+  if(iter != page_table_.cend()){
     return iter->second;
   }
   return -1;
