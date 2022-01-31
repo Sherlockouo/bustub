@@ -53,15 +53,18 @@ BufferPoolManagerInstance::~BufferPoolManagerInstance() {
 
 // 1. 找到这个页在缓冲池中的位置
 // 2. 写入磁盘 
+// notes: 将脏页(再缓冲池中修改过 但是未保存到磁盘的页) 写入 磁盘
 bool BufferPoolManagerInstance::FlushPgImp(page_id_t page_id) {
   // Make sure you call DiskManager::WritePage!
   std::lock_guard<std::mutex> lock_guard(latch_);
+  // 在page表(表存的是 page -> frame 的映射 )中查找该page_id
   auto iter = page_table_.find(page_id);
   if(iter == page_table_.end() || page_id == INVALID_PAGE_ID){
     return false;
   }
+  // 将该页写入磁盘
   FlushPg(page_id);
-  
+  // 清楚dirty标志
   pages_[page_table_[page_id]].is_dirty_ = false;
   return true;
 }
@@ -73,7 +76,7 @@ void BufferPoolManagerInstance::FlushAllPgsImp() {
   }
 }
 
-// 分配一个新的page 简历page -> frame 映射
+// 分配一个新的page 创建page -> frame 映射
 Page *BufferPoolManagerInstance::NewPgImp(page_id_t *page_id) {
   // 0.   Make sure you call AllocatePage!
  std::lock_guard<std::mutex> lock_guard(latch_);
@@ -87,6 +90,7 @@ Page *BufferPoolManagerInstance::NewPgImp(page_id_t *page_id) {
   // 2.   Pick a victim page P from either the free list or the replacer. Always pick from the free list first.
   // 3.   Update P's metadata, zero out memory and add P to the page table.
   // 4.   Set the page ID output parameter. Return a pointer to P.
+  // buffer pool pages数组
   pages_[frame_id].pin_count_++;
   pages_[frame_id].page_id_ = AllocatePage();
   page_table_[pages_[frame_id].page_id_] = frame_id;
